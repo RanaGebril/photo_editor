@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class BottomNavigationItem extends StatelessWidget{
-  void Function() onpressed;
+  Function()? onpressed;
   String title;
-  IconData icon;
-  BottomNavigationItem({required this.onpressed,required this.title,required this.icon});
+  IconData? icon;
+  BottomNavigationItem(this.icon,{ this.onpressed,required this.title });
   @override
   Widget build(BuildContext context) {
     return InkWell(
