@@ -56,7 +56,7 @@ class _FilterScreenState extends State<FilterScreen> {
                 final file = File(filePath);
                 await file.writeAsBytes(bytes);
 
-                editProvider.setFilteredImage(file);
+                //editProvider.setFilteredImage(file);
 
                 if (!mounted) return;
                 Navigator.of(context).pop();

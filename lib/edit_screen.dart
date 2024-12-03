@@ -68,16 +68,11 @@ class _EditScreenState extends State<EditScreen> {
                         final imageToFilter = editProvider.croppedImage ?? File(selectedImage);
 
                         // Navigate to FilterScreen and wait for the filtered image
-                        final result = await Navigator.pushNamed(
+                         Navigator.pushNamed(
                           context,
                           FilterScreen.routeName,
                           arguments: imageToFilter,
                         );
-
-                        if (result is File) {
-                          // Update the provider with the filtered image
-                          editProvider.setFilteredImage(result);
-                        }
                       },
                       title: 'Filters',
                       Icons.filter_vintage_outlined,
