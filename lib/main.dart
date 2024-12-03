@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_editor/edit_screen.dart';
 import 'package:photo_editor/home_screen.dart';
 import 'package:photo_editor/splash_screen.dart';
 
@@ -14,6 +15,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         routes: {
           HomeScreen.routeName: (context) => HomeScreen(),
+          EditScreen.routeName: (context) => EditScreen(),
 
         },
       );
