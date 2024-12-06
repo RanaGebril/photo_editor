@@ -24,5 +24,4 @@ class BottomNavigationItem extends StatelessWidget{
       ),
     );
   }
-
 }

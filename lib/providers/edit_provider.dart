@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 
@@ -19,7 +18,6 @@ class EditProvider extends ChangeNotifier {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       aspectRatioPresets: [
-        //CropAspectRatioPreset.square,
         CropAspectRatioPreset.ratio3x2,
         CropAspectRatioPreset.ratio4x3,
         CropAspectRatioPreset.ratio16x9,
@@ -41,7 +39,6 @@ class EditProvider extends ChangeNotifier {
     }
   }
 
-
   // Save Uint8List to a temporary file
   Future<File> saveUint8ListToFile(Uint8List data, String path) async {
     final file = File(path);
@@ -61,5 +58,11 @@ class EditProvider extends ChangeNotifier {
     filteredImage = await saveUint8ListToFile(currentImage!, tempFilePath);
 
     notifyListeners(); // Notify listeners after changing the image
+  }
+
+  // Update the filtered image with the modified brightness image
+  void updateFilteredImage(Uint8List modifiedImage) {
+    filteredImage = File.fromRawPath(modifiedImage);
+    notifyListeners();
   }
 }

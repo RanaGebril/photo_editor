@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:photo_editor/edit_screen.dart';
 import 'package:photo_editor/filter/filter_screen.dart';
@@ -16,16 +17,14 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => EditProvider(),
       child: MaterialApp(
-          home: SplashScreen(),
-          debugShowCheckedModeBanner: false,
-          routes: {
-            HomeScreen.routeName: (context) => HomeScreen(),
-            EditScreen.routeName: (context) => EditScreen(),
-            FilterScreen.routeName: (context) => FilterScreen(),
-      
-      
-          },
-        ),
+        home: SplashScreen(),
+        debugShowCheckedModeBanner: false,
+        routes: {
+          HomeScreen.routeName: (context) => HomeScreen(),
+          EditScreen.routeName: (context) => EditScreen(),
+          FilterScreen.routeName: (context) => FilterScreen(),
+        },
+      ),
     );
   }
 }
