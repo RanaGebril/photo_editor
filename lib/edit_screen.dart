@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:photo_editor/bottom_navigation_item.dart';
 import 'package:photo_editor/filter/filter_screen.dart';
@@ -15,7 +16,6 @@ class EditScreen extends StatefulWidget {
 class _EditScreenState extends State<EditScreen> {
   @override
   Widget build(BuildContext context) {
-    // Retrieve the selected image path passed via the Navigator
     final selectedImage = ModalRoute.of(context)?.settings.arguments as String?;
 
     if (selectedImage == null) {
@@ -30,7 +30,11 @@ class _EditScreenState extends State<EditScreen> {
     }
 
     return ChangeNotifierProvider(
-      create: (context) => EditProvider(),
+      create: (context) {
+        final editProvider = EditProvider();
+        editProvider.initializeImage(File(selectedImage));
+        return editProvider;
+      },
       child: Consumer<EditProvider>(
         builder: (context, editProvider, child) {
           return Scaffold(
@@ -57,48 +61,59 @@ class _EditScreenState extends State<EditScreen> {
                   children: [
                     BottomNavigationItem(
                       onpressed: () async {
-                        final imageToCrop = editProvider.croppedImage ?? File(selectedImage);
-                        await editProvider.cropImage(imageToCrop);
+                        final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
+                        await tempFile.writeAsBytes(editProvider.currentImage!);
+
+                        await editProvider.cropImage(tempFile);
                       },
                       title: 'Crop & Rotate',
                       Icons.crop_rotate,
                     ),
                     BottomNavigationItem(
                       onpressed: () async {
-                        final imageToFilter = editProvider.croppedImage ?? File(selectedImage);
+                        final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
+                        await tempFile.writeAsBytes(editProvider.currentImage!);
 
-                        // Navigate to FilterScreen and wait for the filtered image
-                         Navigator.pushNamed(
+                        final filteredBytes = await Navigator.pushNamed(
                           context,
                           FilterScreen.routeName,
-                          arguments: imageToFilter,
-                        );
+                          arguments: tempFile,
+                        ) as Uint8List?;
+
+                        if (filteredBytes != null) {
+                          await editProvider.applyFilter(filteredBytes);
+                        }
                       },
                       title: 'Filters',
                       Icons.filter_vintage_outlined,
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        await editProvider.flipImage(horizontal: true); // Flip horizontally
+                      },
+                      title: 'Flip Horizontal',
+                      Icons.flip,
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        await editProvider.flipImage(horizontal: false); // Flip vertically
+                      },
+                      title: 'Flip Vertical',
+                      Icons.flip_camera_android,
                     ),
                   ],
                 ),
               ),
             ),
             body: Center(
-              child: Consumer<EditProvider>(
-                builder: (context, editProvider, child) {
-                  // Determine which image to display
-                  final displayedImage = editProvider.filteredImage ??
-                      editProvider.croppedImage ??
-                      File(selectedImage);
-
-                  return Container(
-                    child: Image.file(
-                      displayedImage,
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      fit: BoxFit.contain,
-                    ),
-                  );
-                },
-              ),
+              child: editProvider.currentImage != null
+                  ? Image.memory(
+                editProvider.currentImage!,
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.6,
+                fit: BoxFit.contain,
+              )
+                  : const CircularProgressIndicator(),
             ),
           );
         },

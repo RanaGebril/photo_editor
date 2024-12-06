@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:photo_editor/filter/filters.dart';
 import 'package:photo_editor/model/filter.dart';
-import 'package:photo_editor/providers/edit_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:screenshot/screenshot.dart';
+
+import '../providers/edit_provider.dart';
 
 class FilterScreen extends StatefulWidget {
   static String routeName = 'filter';
@@ -39,7 +41,7 @@ class _FilterScreenState extends State<FilterScreen> {
 
     // Initialize the provider with the passed image
     final editProvider = Provider.of<EditProvider>(context, listen: false);
-    editProvider.changeImage(imageFile);
+    editProvider.initializeImage(imageFile);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,10 +58,10 @@ class _FilterScreenState extends State<FilterScreen> {
                 final file = File(filePath);
                 await file.writeAsBytes(bytes);
 
-                //editProvider.setFilteredImage(file);
+                editProvider.applyFilter(bytes); // Save the filtered image
 
                 if (!mounted) return;
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(bytes); // Pass the filtered image back
               }
             },
             icon: const Icon(Icons.done),
@@ -111,22 +113,9 @@ class _FilterScreenState extends State<FilterScreen> {
                               currentFilter = filter;
                             });
                           },
-                          child: Consumer<EditProvider>(
-                            builder: (context, value, child) {
-                              final currentImage = value.currentImage;
-                              if (currentImage != null) {
-                                return ColorFiltered(
-                                  colorFilter: ColorFilter.matrix(filter.matrix),
-                                  child: Image.memory(
-                                    currentImage,
-                                    fit: BoxFit.fill,
-                                    width: 60,
-                                    height: 60,
-                                  ),
-                                );
-                              }
-                              return const SizedBox(); // Fallback if image is not ready
-                            },
+                          child: ColorFiltered(
+                            colorFilter: ColorFilter.matrix(filter.matrix),
+                            child: Image.file(imageFile, fit: BoxFit.fill),
                           ),
                         ),
                       ),
