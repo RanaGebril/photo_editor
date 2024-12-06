@@ -39,6 +39,7 @@ dependencies:
   image: ^3.0.1
   provider: ^6.1.2
   image_cropper: ^1.5.0
+  image_gallery_saver: ^1.7.1
   screenshot: ^3.0.0
   path_provider: ^2.1.5
   image_editor: ^1.6.0

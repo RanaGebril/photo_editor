@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 
-class BottomNavigationItem extends StatelessWidget{
-  Function()? onpressed;
-  String title;
-  IconData? icon;
-  BottomNavigationItem(this.icon,{ this.onpressed,required this.title });
+class BottomNavigationItem extends StatelessWidget {
+  final Function()? onpressed;
+  final String title;
+  final IconData? icon;
+
+  BottomNavigationItem(this.icon, {this.onpressed, required this.title});
+
   @override
   Widget build(BuildContext context) {
     return InkWell(
@@ -14,15 +16,14 @@ class BottomNavigationItem extends StatelessWidget{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon,color: Colors.white,),
-            Text(title,
-              style: TextStyle(
-                  color: Colors.white
-              ),)
+            Icon(icon, color: Colors.white),
+            Text(
+              title,
+              style: TextStyle(color: Colors.white),
+            )
           ],
         ),
       ),
     );
   }
-
 }

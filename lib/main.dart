@@ -16,16 +16,14 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => EditProvider(),
       child: MaterialApp(
-          home: SplashScreen(),
-          debugShowCheckedModeBanner: false,
-          routes: {
-            HomeScreen.routeName: (context) => HomeScreen(),
-            EditScreen.routeName: (context) => EditScreen(),
-            FilterScreen.routeName: (context) => FilterScreen(),
-      
-      
-          },
-        ),
+        home: SplashScreen(),
+        debugShowCheckedModeBanner: false,
+        routes: {
+          HomeScreen.routeName: (context) => HomeScreen(),
+          EditScreen.routeName: (context) => EditScreen(),
+          FilterScreen.routeName: (context) => FilterScreen(),
+        },
+      ),
     );
   }
 }

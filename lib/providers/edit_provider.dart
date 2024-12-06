@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
 
-class EditProvider extends ChangeNotifier {
+class EditProvider with ChangeNotifier {
   Uint8List? currentImage;
 
   // Crop the image and update the state
@@ -28,13 +29,11 @@ class EditProvider extends ChangeNotifier {
         cropFrameColor: Colors.white,
         cropGridColor: Colors.white,
       ),
-
-
     );
 
     if (croppedFile != null) {
       currentImage = await croppedFile.readAsBytes();
-      notifyListeners();
+      notifyListeners(); // Notify listeners to update the UI
     }
   }
 
@@ -47,7 +46,7 @@ class EditProvider extends ChangeNotifier {
   // Apply a filter and update the state
   Future<void> applyFilter(Uint8List filteredBytes) async {
     currentImage = filteredBytes;
-    notifyListeners();
+    notifyListeners(); // Notify listeners to update the UI
   }
 
   // Flip the image and update the state
@@ -65,6 +64,43 @@ class EditProvider extends ChangeNotifier {
 
     // Encode the flipped image back to Uint8List
     currentImage = Uint8List.fromList(img.encodePng(flippedImage));
-    notifyListeners();
+    notifyListeners(); // Notify listeners to update the UI
+  }
+
+  // Update the current image with filtered bytes
+  void updateFilteredImage(Uint8List filteredBytes) {
+    currentImage = filteredBytes;
+    notifyListeners(); // Notify listeners to update the UI
+  }
+
+  // Adjust brightness of the image
+  Future<void> adjustBrightness(int adjustment) async {
+    if (currentImage == null) return;
+
+    // Decode the current image to a mutable format
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Adjust brightness
+    for (int y = 0; y < originalImage.height; y++) {
+      for (int x = 0; x < originalImage.width; x++) {
+        final pixel = originalImage.getPixel(x, y);
+        final r = img.getRed(pixel) + adjustment;
+        final g = img.getGreen(pixel) + adjustment;
+        final b = img.getBlue(pixel) + adjustment;
+
+        // Clamp values to be between 0 and 255
+        final newPixel = img.getColor(
+          r.clamp(0, 255),
+          g.clamp(0, 255),
+          b.clamp(0, 255),
+        );
+        originalImage.setPixel(x, y, newPixel);
+      }
+    }
+
+    // Encode the adjusted image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners(); // Notify listeners to update the UI
   }
 }

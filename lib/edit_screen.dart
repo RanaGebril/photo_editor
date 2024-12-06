@@ -1,10 +1,13 @@
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:photo_editor/bottom_navigation_item.dart';
 import 'package:photo_editor/filter/filter_screen.dart';
 import 'package:photo_editor/providers/edit_provider.dart';
 import 'package:provider/provider.dart';
+
+import 'brightness/brightness_editor.dart';
 
 class EditScreen extends StatefulWidget {
   static String routeName = 'edit';
@@ -63,7 +66,6 @@ class _EditScreenState extends State<EditScreen> {
                       onpressed: () async {
                         final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
                         await tempFile.writeAsBytes(editProvider.currentImage!);
-
                         await editProvider.cropImage(tempFile);
                       },
                       title: 'Crop & Rotate',
@@ -73,13 +75,11 @@ class _EditScreenState extends State<EditScreen> {
                       onpressed: () async {
                         final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
                         await tempFile.writeAsBytes(editProvider.currentImage!);
-
                         final filteredBytes = await Navigator.pushNamed(
                           context,
                           FilterScreen.routeName,
                           arguments: tempFile,
                         ) as Uint8List?;
-
                         if (filteredBytes != null) {
                           await editProvider.applyFilter(filteredBytes);
                         }
@@ -100,6 +100,23 @@ class _EditScreenState extends State<EditScreen> {
                       },
                       title: 'Flip Vertical',
                       Icons.flip_camera_android,
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        final tempFile =
+                            File('${Directory.systemTemp.path}/temp_image.png');
+                        await tempFile.writeAsBytes(editProvider.currentImage!);
+                        // Navigate to the BrightnessEditor
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                BrightnessEditor(imagePath: tempFile.path),
+                          ),
+                        );
+                      },
+                      title: 'Brightness',
+                      Icons.brightness_6,
                     ),
                   ],
                 ),

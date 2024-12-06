@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:photo_editor/edit_screen.dart';
 
-
 class HomeScreen extends StatefulWidget {
   static const String routeName = 'home';
   const HomeScreen({super.key});
@@ -75,8 +74,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       if (pickedFile != null) {
         image = File(pickedFile.path);
-        Navigator.pushNamed(context,
-            EditScreen.routeName,
+        Navigator.pushNamed(context, EditScreen.routeName,
             arguments: image!.path);
       } else {
         print('No image selected.');
@@ -88,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        width: MediaQuery.of(context).size.width, // Set width to screen width
+        width: MediaQuery.of(context).size.width,
         decoration: BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/images/homeP.jpg'),
