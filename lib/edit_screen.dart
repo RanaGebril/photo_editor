@@ -103,21 +103,72 @@ class _EditScreenState extends State<EditScreen> {
                     ),
                     BottomNavigationItem(
                       onpressed: () async {
-                        final tempFile =
-                            File('${Directory.systemTemp.path}/temp_image.png');
+                        final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
                         await tempFile.writeAsBytes(editProvider.currentImage!);
-                        // Navigate to the BrightnessEditor
-                        await Navigator.push(
+                        final editedBytes = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                BrightnessEditor(imagePath: tempFile.path),
+                            builder: (context) => BrightnessEditor(imagePath: tempFile.path),
                           ),
-                        );
+                        ) as Uint8List?;
+
+                        if (editedBytes != null) {
+                          await editProvider.applyFilter(editedBytes); // Update the image
+                        }
                       },
                       title: 'Brightness',
                       Icons.brightness_6,
                     ),
+
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            double blurValue = 0.0;
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Blur',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: blurValue,
+                                        min: 0,
+                                        max: 20,
+                                        divisions: 20,
+                                        label: blurValue.toStringAsFixed(1),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            blurValue = value;
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.applyBlur(blurValue); // Apply blur
+                                        },
+                                        child: Text('Apply Blur'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Blur',
+                      Icons.blur_on,
+                    ),
+
                   ],
                 ),
               ),

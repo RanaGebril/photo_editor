@@ -2,11 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
-import 'package:provider/provider.dart';
-import 'package:screenshot/screenshot.dart';
-
-import '../providers/edit_provider.dart';
+import 'package:image/image.dart' as img; // Image processing library
 
 class BrightnessEditor extends StatefulWidget {
   final String imagePath;
@@ -18,9 +14,9 @@ class BrightnessEditor extends StatefulWidget {
 }
 
 class _BrightnessEditorState extends State<BrightnessEditor> {
-  double _brightness = 0.0; // قيمة السطوع تبدأ من 0
-  final ScreenshotController screenshotController = ScreenshotController();
+  double _brightness = 0.0;
   Uint8List? _imageBytes;
+  img.Image? _editableImage;
 
   @override
   void initState() {
@@ -31,22 +27,29 @@ class _BrightnessEditorState extends State<BrightnessEditor> {
   void _loadImage() async {
     final file = File(widget.imagePath);
     _imageBytes = await file.readAsBytes();
+    _editableImage = img.decodeImage(_imageBytes!);
     setState(() {});
   }
 
-  Future<void> _saveImage() async {
-    Uint8List? bytes = await screenshotController.capture();
-    if (bytes != null) {
-      final result = await ImageGallerySaver.saveImage(bytes,
-          name: 'edited_image.png'); // Ensure the name matches the original
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Image saved to gallery: $result')),
-      );
-      // Notify the provider to update the image
-      Provider.of<EditProvider>(context, listen: false)
-          .updateFilteredImage(bytes);
-      Navigator.of(context).pop(bytes);
+  void _applyBrightnessAdjustment() {
+    if (_editableImage == null) return;
+
+    // Create a copy of the original image to apply brightness adjustment
+    final adjustedImage = img.Image.from(_editableImage!);
+
+    for (int y = 0; y < adjustedImage.height; y++) {
+      for (int x = 0; x < adjustedImage.width; x++) {
+        final pixel = adjustedImage.getPixel(x, y);
+        final r = (img.getRed(pixel) + (_brightness * 255)).clamp(0, 255);
+        final g = (img.getGreen(pixel) + (_brightness * 255)).clamp(0, 255);
+        final b = (img.getBlue(pixel) + (_brightness * 255)).clamp(0, 255);
+
+        adjustedImage.setPixel(x, y, img.getColor(r.toInt(), g.toInt(), b.toInt()));
+      }
     }
+
+    // Encode the adjusted image back to Uint8List
+    _imageBytes = Uint8List.fromList(img.encodePng(adjustedImage));
   }
 
   @override
@@ -57,67 +60,45 @@ class _BrightnessEditorState extends State<BrightnessEditor> {
         title: const Text('Brightness'),
         actions: [
           IconButton(
-            onPressed: _saveImage,
-            icon: const Icon(Icons.save),
+            onPressed: () {
+              _applyBrightnessAdjustment();
+              Navigator.of(context).pop(_imageBytes); // Pass updated image bytes
+            },
+            icon: const Icon(Icons.done),
           ),
         ],
       ),
       body: Center(
         child: _imageBytes == null
             ? const CircularProgressIndicator()
-            : Screenshot(
-                controller: screenshotController,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      margin: EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            Colors.white
-                                .withOpacity(1 - ((_brightness + 1) / 2)),
-                            BlendMode.modulate,
-                          ),
-                          child: Image.memory(
-                            _imageBytes!,
-                            width: 300,
-                            height: 300,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    Slider(
-                      value: _brightness,
-                      min: -1.0,
-                      max: 1.0,
-                      onChanged: (value) {
-                        setState(() {
-                          _brightness = value;
-                        });
-                      },
-                    ),
-                    Text(
-                      'Brightness: ${(_brightness + 1).toStringAsFixed(2)}',
-                      style: TextStyle(color: Colors.black, fontSize: 20),
-                    ),
-                  ],
-                ),
+            : Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              margin: const EdgeInsets.all(20),
+              child: Image.memory(
+                _imageBytes!,
+                width: 300,
+                height: 300,
+                fit: BoxFit.cover,
               ),
+            ),
+            Slider(
+              value: _brightness,
+              min: -1.0,
+              max: 1.0,
+              onChanged: (value) {
+                setState(() {
+                  _brightness = value;
+                });
+              },
+            ),
+            Text(
+              'Brightness: ${(_brightness + 1).toStringAsFixed(2)}',
+              style: const TextStyle(color: Colors.black, fontSize: 20),
+            ),
+          ],
+        ),
       ),
     );
   }

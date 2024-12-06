@@ -103,4 +103,19 @@ class EditProvider with ChangeNotifier {
     currentImage = Uint8List.fromList(img.encodePng(originalImage));
     notifyListeners(); // Notify listeners to update the UI
   }
+
+  Future<void> applyBlur(double blurValue) async {
+    if (currentImage == null || blurValue == 0.0) return;
+
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Convert image to blur
+    final blurredImage = img.gaussianBlur(originalImage, blurValue.toInt());
+
+    // Encode the blurred image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(blurredImage));
+    notifyListeners();
+  }
+
 }
