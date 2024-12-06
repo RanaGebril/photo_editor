@@ -1,28 +1,22 @@
 import 'dart:io';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
 
 class EditProvider extends ChangeNotifier {
-  File? croppedImage;
   Uint8List? currentImage;
-  File? filteredImage;
 
-  // Set the cropped image and notify listeners
-  void setCroppedImage(File image) {
-    croppedImage = image;
-    notifyListeners();
-  }
-
+  // Crop the image and update the state
   Future<void> cropImage(File imageFile) async {
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       aspectRatioPresets: [
-        //CropAspectRatioPreset.square,
-        CropAspectRatioPreset.ratio3x2,
+        CropAspectRatioPreset.original,
+        CropAspectRatioPreset.square,
         CropAspectRatioPreset.ratio4x3,
         CropAspectRatioPreset.ratio16x9,
+        CropAspectRatioPreset.ratio7x5,
       ],
       androidUiSettings: AndroidUiSettings(
         toolbarTitle: 'Custom Crop Image',
@@ -34,32 +28,43 @@ class EditProvider extends ChangeNotifier {
         cropFrameColor: Colors.white,
         cropGridColor: Colors.white,
       ),
+
+
     );
 
     if (croppedFile != null) {
-      setCroppedImage(File(croppedFile.path)); // Set the cropped image result
+      currentImage = await croppedFile.readAsBytes();
+      notifyListeners();
     }
   }
 
-
-  // Save Uint8List to a temporary file
-  Future<File> saveUint8ListToFile(Uint8List data, String path) async {
-    final file = File(path);
-    await file.writeAsBytes(data);
-    return file;
+  // Initialize the image from a file
+  Future<void> initializeImage(File imageFile) async {
+    currentImage = await imageFile.readAsBytes();
+    notifyListeners();
   }
 
-  // Change the image and update currentImage, croppedImage, and filteredImage
-  Future<void> changeImage(File image) async {
-    currentImage = await image.readAsBytes(); // Convert image file to Uint8List
-    croppedImage = image; // Update the cropped image for consistency
+  // Apply a filter and update the state
+  Future<void> applyFilter(Uint8List filteredBytes) async {
+    currentImage = filteredBytes;
+    notifyListeners();
+  }
 
-    // Save currentImage to a new file and update filteredImage
-    final tempDir = Directory.systemTemp;
-    final tempFilePath =
-        '${tempDir.path}/filtered_image_${DateTime.now().millisecondsSinceEpoch}.png';
-    filteredImage = await saveUint8ListToFile(currentImage!, tempFilePath);
+  // Flip the image and update the state
+  Future<void> flipImage({bool horizontal = true}) async {
+    if (currentImage == null) return;
 
-    notifyListeners(); // Notify listeners after changing the image
+    // Decode the current image to a mutable format
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Perform the flip operation
+    final flippedImage = horizontal
+        ? img.flipHorizontal(originalImage)
+        : img.flipVertical(originalImage);
+
+    // Encode the flipped image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(flippedImage));
+    notifyListeners();
   }
 }
