@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:photo_editor/bottom_navigation_item.dart';
 import 'package:photo_editor/filter/filter_screen.dart';
 import 'package:photo_editor/providers/edit_provider.dart';
+import 'package:photo_editor/save.dart';
 import 'package:provider/provider.dart';
 
 class EditScreen extends StatefulWidget {
@@ -87,13 +88,25 @@ class _EditScreenState extends State<EditScreen> {
                 ],
               ),
               actions: [
-                IconButton(
-                    onPressed: (){},
-                    icon: Icon(Icons.download_for_offline_outlined,
-                        color: Colors.white,
-                        size: 35
-                    )
-                ),
+            IconButton(
+            icon: Icon(Icons.download_for_offline_outlined,
+                color: Colors.white,
+                size: 35
+            ),
+            onPressed: () async {
+              // Ensure the image is not null
+              if (editProvider.currentImage != null) {
+                // Call SaveI.saveImage to save the current image to the gallery
+                await Save.saveImage(context, editProvider.currentImage!);
+              } else {
+                // Show error if no image is available to save
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No image to save!')),
+                );
+              }
+            }
+                )
+
               ],
             ),
             bottomNavigationBar: Container(
