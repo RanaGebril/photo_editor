@@ -10,8 +10,42 @@ class EditProvider with ChangeNotifier {
   Uint8List? currentImage;
   Uint8List? originalImage; // Save the original image for cancellation
 
+  final List<Uint8List?> _undoStack = [];
+  final List<Uint8List?> _redoStack = [];
+
+  bool get canUndo => _undoStack.isNotEmpty;
+  bool get canRedo => _redoStack.isNotEmpty;
+
+  // Save the current state for undo
+  void _saveStateForUndo() {
+    if (currentImage != null) {
+      _undoStack.add(Uint8List.fromList(currentImage!));
+      _redoStack.clear(); // Clear redo stack on a new action
+    }
+  }
+
+  // Undo the last action
+  void undo() {
+    if (_undoStack.isNotEmpty) {
+      _redoStack.add(Uint8List.fromList(currentImage!));
+      currentImage = _undoStack.removeLast();
+      notifyListeners();
+    }
+  }
+
+  // Redo the last undone action
+  void redo() {
+    if (_redoStack.isNotEmpty) {
+      _undoStack.add(Uint8List.fromList(currentImage!));
+      currentImage = _redoStack.removeLast();
+      notifyListeners();
+    }
+  }
+
+
   // Crop the image and update the state
   Future<void> cropImage(File imageFile) async {
+    _saveStateForUndo();
     final croppedFile = await ImageCropper().cropImage(
       sourcePath: imageFile.path,
       aspectRatioPresets: [
@@ -42,18 +76,22 @@ class EditProvider with ChangeNotifier {
   Future<void> initializeImage(File imageFile) async {
     originalImage = await imageFile.readAsBytes(); // Save the original image
     currentImage = originalImage; // Set the current image to the original
+    _undoStack.clear();
+    _redoStack.clear();
     notifyListeners();
   }
 
 
   // Apply a filter and update the state
   Future<void> applyFilter(Uint8List filteredBytes) async {
+    _saveStateForUndo();
     currentImage = filteredBytes;
     notifyListeners(); // Notify listeners to update the UI
   }
 
   // Flip the image and update the state
   Future<void> flipImage({bool horizontal = true}) async {
+    _saveStateForUndo();
     if (currentImage == null) return;
 
     // Decode the current image to a mutable format
@@ -72,6 +110,7 @@ class EditProvider with ChangeNotifier {
 
   // Update the current image with filtered bytes
   void updateFilteredImage(Uint8List filteredBytes) {
+    _saveStateForUndo();
     currentImage = filteredBytes;
     notifyListeners(); // Notify listeners to update the UI
   }
@@ -79,6 +118,7 @@ class EditProvider with ChangeNotifier {
   // Adjust brightness of the image
   // Adjust brightness of the image
   Future<void> adjustBrightness(int adjustment) async {
+    _saveStateForUndo();
     if (currentImage == null) return;
 
     // Decode the current image to a mutable format
@@ -110,6 +150,7 @@ class EditProvider with ChangeNotifier {
 
 
   Future<void> applyBlur(double blurValue) async {
+    _saveStateForUndo();
     if (currentImage == null || blurValue == 0.0) return;
 
     final originalImage = img.decodeImage(currentImage!);
@@ -125,6 +166,7 @@ class EditProvider with ChangeNotifier {
 
   // Adjust sharpness of the image
   Future<void> adjustSharpness(double sharpnessFactor) async {
+    _saveStateForUndo();
     if (currentImage == null || sharpnessFactor == 0.0) return;
 
     // Decode the current image to a mutable format
@@ -147,6 +189,7 @@ class EditProvider with ChangeNotifier {
   }
 
   Future<void> adjustContrast(double contrastFactor) async {
+    _saveStateForUndo();
     if (currentImage == null || contrastFactor == 1.0) return;
 
     final originalImage = img.decodeImage(currentImage!);
@@ -177,6 +220,7 @@ class EditProvider with ChangeNotifier {
 
 
   Future<void> adjustSaturation(double saturationFactor) async {
+    _saveStateForUndo();
     if (currentImage == null || saturationFactor == 1.0) return;
 
     final originalImage = img.decodeImage(currentImage!);
@@ -206,6 +250,7 @@ class EditProvider with ChangeNotifier {
   }
 
   Future<void> addBorder(int borderSize, {int r = 0, int g = 0, int b = 0}) async {
+    _saveStateForUndo();
     if (currentImage == null) return;
 
     final originalImage = img.decodeImage(currentImage!);
@@ -235,6 +280,7 @@ class EditProvider with ChangeNotifier {
 
   // Add noise to the image with different noise types
   Future<void> addNoise(String noiseType, double noiseLevel) async {
+    _saveStateForUndo();
     if (currentImage == null || noiseLevel <= 0) return;
 
     // Decode the current image to a mutable format
@@ -269,6 +315,7 @@ class EditProvider with ChangeNotifier {
 
 
   Future<void> removeNoise(double threshold) async {
+    _saveStateForUndo();
     if (currentImage == null || threshold <= 0) return;
 
     // Decode the current image to a mutable format
@@ -337,6 +384,8 @@ class EditProvider with ChangeNotifier {
 
   // Cancel all changes and revert to the original image
   void cancel() {
+    _undoStack.clear();
+    _redoStack.clear();
     if (originalImage != null) {
       currentImage = originalImage; // Restore the original image
       notifyListeners(); // Notify listeners to update the UI
