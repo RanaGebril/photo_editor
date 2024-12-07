@@ -43,12 +43,48 @@ class _EditScreenState extends State<EditScreen> {
             appBar: AppBar(
               backgroundColor: Colors.black,
               elevation: 0,
+              leading: IconButton(
+                onPressed: (){
+                  final editProvider = Provider.of<EditProvider>(context, listen: false);
+                  editProvider.cancel();
+                },
+                icon: Icon(Icons.cancel_outlined,
+                color: Colors.white,
+                size: 35
+                ) ,
+              ),
+              title: Row(
+                children: [
+                  SizedBox(
+                    width: 45,
+                  ),
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.undo,
+                          color: Colors.white,
+                          size: 30
+                      )
+                  ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  IconButton(
+                      onPressed: (){},
+                      icon: Icon(Icons.redo,
+                          color: Colors.white,
+                          size: 30
+                      )
+                  ),
+
+                ],
+              ),
               actions: [
-                ElevatedButton(
-                  onPressed: () {
-                    // Implement save functionality here
-                  },
-                  child: const Text('Save'),
+                IconButton(
+                    onPressed: (){},
+                    icon: Icon(Icons.download_for_offline_outlined,
+                        color: Colors.white,
+                        size: 35
+                    )
                 ),
               ],
             ),

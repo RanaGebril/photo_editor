@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
@@ -9,6 +8,7 @@ import 'dart:math';  // Add this line to use Random
 
 class EditProvider with ChangeNotifier {
   Uint8List? currentImage;
+  Uint8List? originalImage; // Save the original image for cancellation
 
   // Crop the image and update the state
   Future<void> cropImage(File imageFile) async {
@@ -39,11 +39,12 @@ class EditProvider with ChangeNotifier {
     }
   }
 
-  // Initialize the image from a file
   Future<void> initializeImage(File imageFile) async {
-    currentImage = await imageFile.readAsBytes();
+    originalImage = await imageFile.readAsBytes(); // Save the original image
+    currentImage = originalImage; // Set the current image to the original
     notifyListeners();
   }
+
 
   // Apply a filter and update the state
   Future<void> applyFilter(Uint8List filteredBytes) async {
@@ -334,4 +335,11 @@ class EditProvider with ChangeNotifier {
     notifyListeners(); // Notify listeners to update the UI
   }
 
+  // Cancel all changes and revert to the original image
+  void cancel() {
+    if (originalImage != null) {
+      currentImage = originalImage; // Restore the original image
+      notifyListeners(); // Notify listeners to update the UI
+    }
+  }
 }
