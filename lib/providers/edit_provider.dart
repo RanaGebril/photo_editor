@@ -4,7 +4,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
-import 'package:photo_editor/providers/edit_provider.dart'; // Update with the correct path
 import 'dart:math';  // Add this line to use Random
 
 
@@ -263,6 +262,74 @@ class EditProvider with ChangeNotifier {
     }
 
     // Encode the noisy image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners(); // Notify listeners to update the UI
+  }
+
+
+  Future<void> removeNoise(double threshold) async {
+    if (currentImage == null || threshold <= 0) return;
+
+    // Decode the current image to a mutable format
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    final width = originalImage.width;
+    final height = originalImage.height;
+
+    // Loop through each pixel to apply the noise removal
+    for (int y = 1; y < height - 1; y++) {
+      for (int x = 1; x < width - 1; x++) {
+        List<int> neighborColors = [];
+
+        // Collect the color of surrounding pixels (3x3 window)
+        for (int dy = -1; dy <= 1; dy++) {
+          for (int dx = -1; dx <= 1; dx++) {
+            final pixel = originalImage.getPixel(x + dx, y + dy);
+            neighborColors.add(pixel);
+          }
+        }
+
+        // Convert the list of pixels to RGB values
+        List<int> rValues = [];
+        List<int> gValues = [];
+        List<int> bValues = [];
+
+        for (var color in neighborColors) {
+          rValues.add(img.getRed(color));
+          gValues.add(img.getGreen(color));
+          bValues.add(img.getBlue(color));
+        }
+
+        // Sort the RGB values to find the median
+        rValues.sort();
+        gValues.sort();
+        bValues.sort();
+
+        // Median RGB values
+        int rMedian = rValues[4]; // The middle value in the sorted list
+        int gMedian = gValues[4];
+        int bMedian = bValues[4];
+
+        // Get the original pixel value
+        final originalPixel = originalImage.getPixel(x, y);
+        final rOriginal = img.getRed(originalPixel);
+        final gOriginal = img.getGreen(originalPixel);
+        final bOriginal = img.getBlue(originalPixel);
+
+        // Calculate the difference between the original pixel and the median
+        int diffR = (rOriginal - rMedian).abs();
+        int diffG = (gOriginal - gMedian).abs();
+        int diffB = (bOriginal - bMedian).abs();
+
+        // If the difference exceeds the threshold, replace the pixel with the median value
+        if (diffR > threshold || diffG > threshold || diffB > threshold) {
+          originalImage.setPixel(x, y, img.getColor(rMedian, gMedian, bMedian));
+        }
+      }
+    }
+
+    // Encode the cleaned image back to Uint8List
     currentImage = Uint8List.fromList(img.encodePng(originalImage));
     notifyListeners(); // Notify listeners to update the UI
   }

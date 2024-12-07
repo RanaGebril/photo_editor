@@ -682,6 +682,18 @@ class _EditScreenState extends State<EditScreen> {
                       title: 'Add Noise',
                       Icons.noise_aware, // Replace with the noise icon you want
                     ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        // Directly apply noise removal with a default threshold
+                        double defaultThreshold = 0.05; // Use your preferred threshold
+                        await editProvider.removeNoise(defaultThreshold);
+                      },
+                      title: 'Remove Noise',
+                       Icons.remove_circle, // Replace with the remove noise icon you want
+                    ),
+
+
+
 
 
 
