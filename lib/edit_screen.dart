@@ -7,8 +7,6 @@ import 'package:photo_editor/filter/filter_screen.dart';
 import 'package:photo_editor/providers/edit_provider.dart';
 import 'package:provider/provider.dart';
 
-import 'brightness/brightness_editor.dart';
-
 class EditScreen extends StatefulWidget {
   static String routeName = 'edit';
 
@@ -342,7 +340,6 @@ class _EditScreenState extends State<EditScreen> {
                       title: 'Saturation',
                       Icons.color_lens, // You can use a suitable icon here
                     ),
-
                     BottomNavigationItem(
                       onpressed: () async {
                         showModalBottomSheet(
@@ -453,7 +450,238 @@ class _EditScreenState extends State<EditScreen> {
                       title: 'Add Border',
                       Icons.border_outer, // Replace with a suitable icon
                     ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        // Call the saturation adjustment function
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            double saturationValue = 1.0; // Default saturation adjustment
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Saturation',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: saturationValue,
+                                        min: 0.0,
+                                        max: 2.0,
+                                        divisions: 20,
+                                        label: saturationValue.toStringAsFixed(1),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            saturationValue = value;
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.adjustSaturation(saturationValue); // Apply saturation
+                                        },
+                                        child: Text('Apply Saturation'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Saturation',
+                      Icons.color_lens, // You can use a suitable icon here
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            int borderSize = 10;
+                            int r = 0, g = 0, b = 0;
 
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Add Border',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Text('Border Size:', style: TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: borderSize.toDouble(),
+                                            min: 0,
+                                            max: 50,
+                                            divisions: 10,
+                                            label: borderSize.toString(),
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                borderSize = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const Text(
+                                        'Select Border Color',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Red: $r', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: r.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                r = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Green: $g', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: g.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                g = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Blue: $b', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: b.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                b = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.addBorder(borderSize, r: r, g: g, b: b); // Apply border
+                                        },
+                                        child: const Text('Apply Border'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Add Border',
+                      Icons.border_outer, // Replace with a suitable icon
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            String selectedNoiseType = 'salt_and_pepper'; // Default noise type
+
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Add Noise',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Salt and Pepper Noise', style: TextStyle(color: Colors.white)),
+                                        leading: Radio<String>(
+                                          value: 'salt_and_pepper',
+                                          groupValue: selectedNoiseType,
+                                          onChanged: (value) {
+                                            setModalState(() {
+                                              selectedNoiseType = value!;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Salt Noise', style: TextStyle(color: Colors.white)),
+                                        leading: Radio<String>(
+                                          value: 'salt',
+                                          groupValue: selectedNoiseType,
+                                          onChanged: (value) {
+                                            setModalState(() {
+                                              selectedNoiseType = value!;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      ListTile(
+                                        title: const Text('Pepper Noise', style: TextStyle(color: Colors.white)),
+                                        leading: Radio<String>(
+                                          value: 'pepper',
+                                          groupValue: selectedNoiseType,
+                                          onChanged: (value) {
+                                            setModalState(() {
+                                              selectedNoiseType = value!;
+                                            });
+                                          },
+                                        ),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.addNoise(selectedNoiseType, 0.04); // Apply the selected noise
+                                        },
+                                        child: const Text('Apply Noise'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Add Noise',
+                      Icons.noise_aware, // Replace with the noise icon you want
+                    ),
 
 
 
@@ -478,4 +706,7 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 }
+
+
+
 

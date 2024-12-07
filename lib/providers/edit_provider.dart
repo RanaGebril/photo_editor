@@ -4,6 +4,9 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
+import 'package:photo_editor/providers/edit_provider.dart'; // Update with the correct path
+import 'dart:math';  // Add this line to use Random
+
 
 class EditProvider with ChangeNotifier {
   Uint8List? currentImage;
@@ -230,5 +233,38 @@ class EditProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Add noise to the image with different noise types
+  Future<void> addNoise(String noiseType, double noiseLevel) async {
+    if (currentImage == null || noiseLevel <= 0) return;
+
+    // Decode the current image to a mutable format
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    final random = Random();
+
+    for (int y = 0; y < originalImage.height; y++) {
+      for (int x = 0; x < originalImage.width; x++) {
+        // Generate random number to determine if a pixel will be noisy
+        if (random.nextDouble() < noiseLevel) {
+          if (noiseType == 'salt_and_pepper') {
+            // Salt and pepper noise: randomize between black or white
+            final color = random.nextBool() ? 0 : 255;
+            originalImage.setPixel(x, y, img.getColor(color, color, color));
+          } else if (noiseType == 'salt') {
+            // Salt noise: randomize white
+            originalImage.setPixel(x, y, img.getColor(255, 255, 255));
+          } else if (noiseType == 'pepper') {
+            // Pepper noise: randomize black
+            originalImage.setPixel(x, y, img.getColor(0, 0, 0));
+          }
+        }
+      }
+    }
+
+    // Encode the noisy image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners(); // Notify listeners to update the UI
+  }
 
 }
