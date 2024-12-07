@@ -173,4 +173,34 @@ class EditProvider with ChangeNotifier {
   }
 
 
+  Future<void> adjustSaturation(double saturationFactor) async {
+    if (currentImage == null || saturationFactor == 1.0) return;
+
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Adjust saturation using a basic formula
+    for (int y = 0; y < originalImage.height; y++) {
+      for (int x = 0; x < originalImage.width; x++) {
+        final pixel = originalImage.getPixel(x, y);
+        final r = img.getRed(pixel);
+        final g = img.getGreen(pixel);
+        final b = img.getBlue(pixel);
+
+        // Convert to grayscale to adjust saturation
+        final avg = (r + g + b) / 3;
+        final newR = ((r - avg) * saturationFactor + avg).clamp(0, 255).toInt();
+        final newG = ((g - avg) * saturationFactor + avg).clamp(0, 255).toInt();
+        final newB = ((b - avg) * saturationFactor + avg).clamp(0, 255).toInt();
+
+        final newPixel = img.getColor(newR, newG, newB);
+        originalImage.setPixel(x, y, newPixel);
+      }
+    }
+
+    currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners();
+  }
+
+
 }

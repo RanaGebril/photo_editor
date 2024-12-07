@@ -293,6 +293,56 @@ class _EditScreenState extends State<EditScreen> {
                       title: 'Contrast',
                       Icons.exposure,
                     ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        // Call the saturation adjustment function
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            double saturationValue = 1.0; // Default saturation adjustment
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Saturation',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: saturationValue,
+                                        min: 0.0,
+                                        max: 2.0,
+                                        divisions: 20,
+                                        label: saturationValue.toStringAsFixed(1),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            saturationValue = value;
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.adjustSaturation(saturationValue); // Apply saturation
+                                        },
+                                        child: Text('Apply Saturation'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Saturation',
+                      Icons.color_lens, // You can use a suitable icon here
+                    ),
+
                   ],
                 ),
               ),
