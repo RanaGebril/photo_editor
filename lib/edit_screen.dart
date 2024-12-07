@@ -103,23 +103,52 @@ class _EditScreenState extends State<EditScreen> {
                     ),
                     BottomNavigationItem(
                       onpressed: () async {
-                        final tempFile = File('${Directory.systemTemp.path}/temp_image.png');
-                        await tempFile.writeAsBytes(editProvider.currentImage!);
-                        final editedBytes = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BrightnessEditor(imagePath: tempFile.path),
-                          ),
-                        ) as Uint8List?;
-
-                        if (editedBytes != null) {
-                          await editProvider.applyFilter(editedBytes); // Update the image
-                        }
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            int brightnessValue = 0; // Default brightness adjustment
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Brightness',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: brightnessValue.toDouble(),
+                                        min: -255,
+                                        max: 255,
+                                        divisions: 510,
+                                        label: brightnessValue.toString(),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            brightnessValue = value.toInt();
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.adjustBrightness(brightnessValue); // Apply brightness
+                                        },
+                                        child: Text('Apply Brightness'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
                       },
                       title: 'Brightness',
                       Icons.brightness_6,
                     ),
-
                     BottomNavigationItem(
                       onpressed: () async {
                         showModalBottomSheet(
@@ -168,7 +197,102 @@ class _EditScreenState extends State<EditScreen> {
                       title: 'Blur',
                       Icons.blur_on,
                     ),
-
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            double sharpnessValue = 1.0; // Default sharpness factor
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Sharpness',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: sharpnessValue,
+                                        min: 0.0,
+                                        max: 3.0,
+                                        divisions: 30,
+                                        label: sharpnessValue.toStringAsFixed(1),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            sharpnessValue = value;
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.adjustSharpness(sharpnessValue); // Apply sharpness
+                                        },
+                                        child: Text('Apply Sharpness'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Sharpness',
+                      Icons.shutter_speed,  // You can choose another icon for sharpness
+                    ),
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            double contrastValue = 1.0; // Default contrast factor
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Adjust Contrast',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Slider(
+                                        value: contrastValue,
+                                        min: 0.5,
+                                        max: 3.0,
+                                        divisions: 50,
+                                        label: contrastValue.toStringAsFixed(1),
+                                        onChanged: (value) {
+                                          setModalState(() {
+                                            contrastValue = value;
+                                          });
+                                        },
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+                                          await editProvider.adjustContrast(contrastValue);
+                                        },
+                                        child: Text('Apply Contrast'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Contrast',
+                      Icons.exposure,
+                    ),
                   ],
                 ),
               ),
@@ -189,3 +313,4 @@ class _EditScreenState extends State<EditScreen> {
     );
   }
 }
+

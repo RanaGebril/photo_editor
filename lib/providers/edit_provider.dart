@@ -74,6 +74,7 @@ class EditProvider with ChangeNotifier {
   }
 
   // Adjust brightness of the image
+  // Adjust brightness of the image
   Future<void> adjustBrightness(int adjustment) async {
     if (currentImage == null) return;
 
@@ -104,6 +105,7 @@ class EditProvider with ChangeNotifier {
     notifyListeners(); // Notify listeners to update the UI
   }
 
+
   Future<void> applyBlur(double blurValue) async {
     if (currentImage == null || blurValue == 0.0) return;
 
@@ -117,5 +119,58 @@ class EditProvider with ChangeNotifier {
     currentImage = Uint8List.fromList(img.encodePng(blurredImage));
     notifyListeners();
   }
+
+  // Adjust sharpness of the image
+  Future<void> adjustSharpness(double sharpnessFactor) async {
+    if (currentImage == null || sharpnessFactor == 0.0) return;
+
+    // Decode the current image to a mutable format
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Define a simple sharpening kernel
+    final sharpenKernel = [
+      -1, -1, -1,
+      -1,  9, -1,
+      -1, -1, -1,
+    ];
+
+    // Apply the kernel to the image
+    final sharpenedImage = img.convolution(originalImage, sharpenKernel);
+
+    // Encode the sharpened image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(sharpenedImage));
+    notifyListeners(); // Notify listeners to update the UI
+  }
+
+  Future<void> adjustContrast(double contrastFactor) async {
+    if (currentImage == null || contrastFactor == 1.0) return;
+
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Apply contrast adjustment
+    for (int y = 0; y < originalImage.height; y++) {
+      for (int x = 0; x < originalImage.width; x++) {
+        final pixel = originalImage.getPixel(x, y);
+        final r = img.getRed(pixel);
+        final g = img.getGreen(pixel);
+        final b = img.getBlue(pixel);
+
+        final avg = (r + g + b) / 3;
+
+        final newR = ((r - avg) * contrastFactor + avg).clamp(0, 255).toInt();
+        final newG = ((g - avg) * contrastFactor + avg).clamp(0, 255).toInt();
+        final newB = ((b - avg) * contrastFactor + avg).clamp(0, 255).toInt();
+
+        final newPixel = img.getColor(newR, newG, newB);
+        originalImage.setPixel(x, y, newPixel);
+      }
+    }
+
+    currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners();
+  }
+
 
 }
