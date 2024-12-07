@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
-
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img; // Import the image package
 import 'package:image_cropper/image_cropper.dart';
@@ -199,6 +199,34 @@ class EditProvider with ChangeNotifier {
     }
 
     currentImage = Uint8List.fromList(img.encodePng(originalImage));
+    notifyListeners();
+  }
+
+  Future<void> addBorder(int borderSize, {int r = 0, int g = 0, int b = 0}) async {
+    if (currentImage == null) return;
+
+    final originalImage = img.decodeImage(currentImage!);
+    if (originalImage == null) return;
+
+    // Create a new image with added border
+    final borderedImage = img.Image(
+      originalImage.width + 2 * borderSize,
+      originalImage.height + 2 * borderSize,
+    );
+
+    // Fill the border area with the desired color
+    img.fill(borderedImage, img.getColor(r, g, b));
+
+    // Copy the original image onto the bordered image
+    img.copyInto(
+      borderedImage,
+      originalImage,
+      dstX: borderSize,
+      dstY: borderSize,
+    );
+
+    // Encode the bordered image back to Uint8List
+    currentImage = Uint8List.fromList(img.encodePng(borderedImage));
     notifyListeners();
   }
 

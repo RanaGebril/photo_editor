@@ -343,6 +343,121 @@ class _EditScreenState extends State<EditScreen> {
                       Icons.color_lens, // You can use a suitable icon here
                     ),
 
+                    BottomNavigationItem(
+                      onpressed: () async {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (context) {
+                            int borderSize = 10;
+                            int r = 0, g = 0, b = 0;
+
+                            return StatefulBuilder(
+                              builder: (BuildContext context, StateSetter setModalState) {
+                                return Container(
+                                  padding: const EdgeInsets.all(16),
+                                  color: Colors.black,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        'Add Border',
+                                        style: TextStyle(color: Colors.white, fontSize: 18),
+                                      ),
+                                      Row(
+                                        children: [
+                                          const Text('Border Size:', style: TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: borderSize.toDouble(),
+                                            min: 0,
+                                            max: 50,
+                                            divisions: 10,
+                                            label: borderSize.toString(),
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                borderSize = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      const Text(
+                                        'Select Border Color',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Red: $r', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: r.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                r = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Green: $g', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: g.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                g = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text('Blue: $b', style: const TextStyle(color: Colors.white)),
+                                          Slider(
+                                            value: b.toDouble(),
+                                            min: 0,
+                                            max: 255,
+                                            divisions: 255,
+                                            onChanged: (value) {
+                                              setModalState(() {
+                                                b = value.toInt();
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          Navigator.pop(context); // Close the modal
+                                          await editProvider.addBorder(borderSize, r: r, g: g, b: b); // Apply border
+                                        },
+                                        child: const Text('Apply Border'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                      title: 'Add Border',
+                      Icons.border_outer, // Replace with a suitable icon
+                    ),
+
+
+
+
+
                   ],
                 ),
               ),
